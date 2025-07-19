@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Квест 💘</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #container {
+      max-width: 700px;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+    }
+    .question {
+      font-size: 28px;
+      margin-bottom: 20px;
+      max-width: 600px;
+      transition: all 0.5s ease;
+    }
+    input {
+      padding: 12px;
+      width: 300px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: crimson;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: darkred;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: none;
+      z-index: 5;
+    }
+    #note {
+      margin-bottom: 10px;
+      color: hotpink;
+      font-weight: bold;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div class="question" id="question">Загрузка...</div>
+  <div id="note"></div>
+  <input type="text" id="answerInput" placeholder="Напиши свой ответ..." autocomplete="off" />
+  <br/>
+  <button id="nextBtn">Продолжить</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const questions = [
+  "Как вас зовут, гость из чата ?",
+  "Какое место ты мечтаешь посетить?",
+  "Какая песня напоминает тебе обо мне?",
+  "Какой момент в жизни ты считаешь самым лучшим?",
+  "Если бы можно было выбрать суперспособность — что бы это было?",
+  "Что делает тебя по-настоящему счастливым?",
+  "Если бы у тебя была волшебная палочка, какое было бы твое желание?",
+  "Какие слова ты хочешь слышать чаще?",
+  "О чём ты мечтаешь?"
+];
+
+let current = 0;
+const answers = [];
+
+const container = document.getElementById("container");
+const questionEl = document.getElementById("question");
+const inputEl = document.getElementById("answerInput");
+const nextBtn = document.getElementById("nextBtn");
+const note = document.getElementById("note");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function showQuestion() {
+  questionEl.style.opacity = 0;
+  note.textContent = "";
+  inputEl.disabled = false;
+
+  setTimeout(() => {
+    questionEl.textContent = questions[current];
+    questionEl.style.opacity = 1;
+    inputEl.value = "";
+    inputEl.focus();
+  }, 300);
+}
+
+nextBtn.onclick = () => {
+  const answer = inputEl.value.trim();
+
+  if (current === questions.length - 1) {
+    const correctAnswer = "о тебе";
+    if (answer.toLowerCase() === correctAnswer) {
+      note.textContent = "Молодец! Правильный ответ";
+      answers.push(answer);
+      current++;
+      setTimeout(startFinale, 800);
+    } else {
+      note.textContent = "Ответ неправильный! ОБО МНЕ ТЫ МЕЧТАЕШЬ! Правильный ответ: О ТЕБЕ. ИСПРАВЛЯЙ БЫСТРЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕ";
+      inputEl.value = "";
+      inputEl.focus();
+    }
+    return;
+  }
+
+  if (answer === "") {
+    alert("Пожалуйста, напиши ответ!");
+    return;
+  }
+
+  answers.push(answer);
+  current++;
+
+  if (current < questions.length) {
+    showQuestion();
+  } else {
+    startFinale();
+  }
+};
+
+showQuestion();
+
+function startFinale() {
+  container.style.display = "none";
+  canvas.style.display = "block";
+
+  let w, h;
+
+  function resize() {
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = w;
+    canvas.height = h;
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  const messages = [
+    "I love you 💕", "Ты как Wi-Fi — когда рядом, всё работает лучше 💫",
+    "Our Anniversary 💖", "Ты не подарок, но я тебя не верну",
+    "You make my heart smile 😊", "Ты как план Б. Никто не понимает, зачем, но пусть будет",
+    "I love you so much! 💘", "Love ya! 💜", "My honey bunch 💞"
+  ];
+
+  const imageSources = [
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2EqaBaF1H8Jvv2dZotEc85xTab4zU4y4f1w&s"
+  ];
+
+  const images = [];
+  imageSources.forEach(src => {
+    const img = new Image();
+    img.src = src;
+    images.push(img);
+  });
+
+  class FloatingText {
+    constructor() { this.reset(); }
+    reset() {
+      this.text = messages[Math.floor(Math.random() * messages.length)];
+      this.x = Math.random() * w;
+      this.y = -20 - Math.random() * 100;
+      this.opacity = Math.random() * 0.5 + 0.5;
+      this.size = Math.random() * 24 + 18;
+      this.speedY = Math.random() * 8 + 10;
+      this.color = `rgba(255, ${100 + Math.floor(Math.random() * 155)}, ${200 + Math.floor(Math.random() * 55)}, ${this.opacity})`;
+    }
+    update() { this.y += this.speedY; if (this.y > h + 50) this.reset(); }
+    draw() {
+      ctx.font = `${this.size}px 'Segoe UI', sans-serif`;
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = "hotpink";
+      ctx.shadowBlur = 10;
+      ctx.fillText(this.text, this.x, this.y);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  class FloatingImage {
+    constructor() { this.reset(); }
+    reset() {
+      this.image = images[Math.floor(Math.random() * images.length)];
+      this.x = Math.random() * w;
+      this.y = -50 - Math.random() * 200;
+      this.size = Math.random() * 60 + 40; // увеличено
+      this.speedY = Math.random() * 4 + 2; // ускорено
+      this.opacity = Math.random() * 0.5 + 0.5;
+    }
+    update() { this.y += this.speedY; if (this.y > h + 50) this.reset(); }
+    draw() {
+      ctx.globalAlpha = this.opacity;
+      ctx.drawImage(this.image, this.x, this.y, this.size, this.size);
+      ctx.globalAlpha = 1.0;
+    }
+  }
+
+  class Star {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.size = Math.random() * 2;
+      this.alpha = Math.random();
+      this.speed = Math.random() * 0.5 + 0.1;
+    }
+    update() { this.y += this.speed; if (this.y > h) this.reset(); }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  const floatingTexts = [], floatingImages = [], stars = [];
+  for (let i = 0; i < 100; i++) stars.push(new Star());
+  for (let i = 0; i < 40; i++) floatingTexts.push(new FloatingText());
+  for (let i = 0; i < 20; i++) floatingImages.push(new FloatingImage());
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    stars.forEach(s => { s.update(); s.draw(); });
+    floatingImages.forEach(img => { img.update(); img.draw(); });
+    floatingTexts.forEach(t => { t.update(); t.draw(); });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+</script>
+
+</body>
+</html>
